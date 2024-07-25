@@ -46,7 +46,7 @@ def clipCountry(group_name, group_layer, layer_name, raster_layer):
             print(extracted_string_country)
             
             # Define the output path for the clipped raster
-            folder_path = f"C:/Users/nikolaus/Desktop/Script_testing/ClipCountry/{extracted_string_country}"
+            folder_path = f"C:/Users/Script_testing/ClipCountry/{extracted_string_country}"
             
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)
