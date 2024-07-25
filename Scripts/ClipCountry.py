@@ -70,7 +70,7 @@ def clipCountry(group_name, group_layer, layer_name, raster_layer):
                 'OUTPUT': output_path
             })
             
-            # confirmation that the shape as saved
+            # confirmation that the shape was saved
             print(f"Raster clipped for {shapefile_layer.name()}. Output saved as {output_path}")
             """
             
