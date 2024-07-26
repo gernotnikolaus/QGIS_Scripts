@@ -1,0 +1,9 @@
+# manually steps, sript will be written soon
+- load the nc file
+- reproject if if needed
+- create grid (rectangle, extend is country shp, 0.232, 4326)
+- intersect grid to country
+- [lat and long have to be added]
+- zoonal statistic, just band 1 for now (iteraring though all bands later on)
+- save as csv
+- combine csv
