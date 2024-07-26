@@ -171,7 +171,7 @@ def clipCountry(group_name, group_layer, layer_name, raster_layer, fp):
                 print(f"Directory {folder_path} was created.")
             
             
-            output_path = f"C:/Users/nikolaus/Desktop/Script_testing/ClipCountry/{extracted_string_country}/test.tif"
+            output_path = f"C:/Users/nikolaus/Desktop/Script_testing/ClipCountry/{extracted_string_country}/test.nc"
 
             # Clip the raster using the shapefile layer
             processing.run("gdal:cliprasterbymasklayer", {
