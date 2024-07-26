@@ -1,6 +1,3 @@
-Here's the GitHub documentation for the two scripts you provided:
-
----
 
 ## QGIS Scripts for Processing Shapefiles and Raster Layers
 
