@@ -1,7 +1,3 @@
-Here's the GitHub documentation for the two scripts you provided:
-
----
-
 ## QGIS Scripts for Processing Shapefiles and Raster Layers
 
 ### Author: Gernot Nikolaus
@@ -11,7 +7,7 @@ This repository contains two Python scripts designed to be used within QGIS. The
 
 ---
 
-### Script 1: Dissolve Shapefiles
+### Script 1: Dissolve Shapefiles (ShpDissolve)
 
 #### Description
 This script iterates through shapefiles in a specified group within a QGIS project, dissolves each shapefile, and saves the output to a specified directory. The dissolved shapefiles are then added to a new group within the QGIS project.
@@ -108,7 +104,7 @@ dissolveLoop(group_name, group_layer)
 
 ---
 
-### Script 2: Clip Raster by Shapefiles
+### Script 2: Clip Raster by Shapefiles (ClipCountry)
 
 #### Description
 This script iterates through shapefiles in a specified group within a QGIS project, clips a raster layer using each shapefile, and saves the output to a specified directory.
