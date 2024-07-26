@@ -8,7 +8,7 @@ import os
 project = QgsProject.instance()
 
 # group name where shps are
-group_name = "Countries"
+group_name = "Dissolved Layers"
 
 # Getting the group layer
 group_layer = project.layerTreeRoot().findGroup(group_name)
@@ -17,7 +17,10 @@ layer_name = "erosion"
 # Get the raster layer which has to be clipped
 raster_layer = QgsProject.instance().mapLayersByName(layer_name)[0]
 
-def clipCountry(group_name, group_layer, layer_name, raster_layer):
+# folder path, a specific folder will be created here in the function for each layer
+folder_path = f"C:/Users/nikolaus/Desktop/Script_testing/ClipCountry/"
+
+def clipCountry(group_name, group_layer, layer_name, raster_layer, fp):
     """
     Iterates through the layers in the specified group, clips a raster layer using each shapefile, and saves the output.
 
@@ -46,14 +49,15 @@ def clipCountry(group_name, group_layer, layer_name, raster_layer):
             print(extracted_string_country)
             
             # Define the output path for the clipped raster
-            folder_path = f"C:/Users/Script_testing/ClipCountry/{extracted_string_country}"
+            folder_path = f"{fp}/{extracted_string_country}"
+            
             
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)
                 print(f"Directory {folder_path} was created.")
             
-            """
-            output_path = f"C:/Users/nikolaus/Desktop/Script_testing/ClipCountry/{extracted_string_country}/{extracted_string_country}_{raster_layer}.nc"
+            
+            output_path = f"C:/Users/nikolaus/Desktop/Script_testing/ClipCountry/{extracted_string_country}/test.nc"
 
             # Clip the raster using the shapefile layer
             processing.run("gdal:cliprasterbymasklayer", {
@@ -70,8 +74,8 @@ def clipCountry(group_name, group_layer, layer_name, raster_layer):
                 'OUTPUT': output_path
             })
             
-            # confirmation that the shape was saved
+            # confirmation that the shape as saved
             print(f"Raster clipped for {shapefile_layer.name()}. Output saved as {output_path}")
-            """
-            
-clipCountry(group_name, group_layer, layer_name, raster_layer)
+ 
+ 
+clipCountry(group_name, group_layer, layer_name, raster_layer, folder_path)

@@ -52,7 +52,7 @@ def dissolveLoop(group_name, group_layer):
             output_path = f"{folder_path}/{extracted_string_country}_dissolved.shp"
 
             # run the dissovle function
-            processing.run("native:dissolve", {
+            result = processing.run("native:dissolve", {
                 'INPUT':shapefile_layer,
                 'FIELD':[],
                 'SEPARATE_DISJOINT':False,
@@ -61,6 +61,25 @@ def dissolveLoop(group_name, group_layer):
             
             # confirmation that the shape was saved
             print(f"Shp dissolved for {shapefile_layer.name()}. Output saved as {output_path}")
+            
+            # Define the group where the dissolved layers will be added
+            dissolved_group_name = "Dissolved Layers"
+            dissolved_group_layer = project.layerTreeRoot().findGroup(dissolved_group_name)
+
+            # If the group does not exist, create it
+            if not dissolved_group_layer:
+                dissolved_group_layer = project.layerTreeRoot().addGroup(dissolved_group_name)
+                        
+            # Load the dissolved shapefile into the project
+            dissolved_layer = QgsVectorLayer(result['OUTPUT'], f"{extracted_string_country}_dissolved", "ogr")
+            if not dissolved_layer.isValid():
+                print(f"Failed to load the dissolved layer for {extracted_string_country}")
+            else:
+                # Add the dissolved layer to the dissolved group
+                project.addMapLayer(dissolved_layer, False)
+                dissolved_group_layer.addLayer(dissolved_layer)
+                print(f"Shp dissolved for {shapefile_layer.name()}. Output saved as {output_path}")
+            
             
 # Call the dissolveLoop function
 dissolveLoop(group_name, group_layer)
