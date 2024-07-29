@@ -3,11 +3,48 @@
 ### Author: Gernot Nikolaus
 ### Date: 2024-07-25
 
-This repository contains two Python scripts designed to be used within QGIS. The first script iterates through shapefiles in a specified group, dissolves each shapefile, and saves the output to a specified directory. The second script clips a raster layer using each shapefile in a specified group and saves the output to a specified directory.
-
 ---
+## Main script (processingTool)
+This script handles specific geoprocessing tools for a specific use case using QGIS and Python. It includes functions to load layers, reproject raster layers, create grids, intersect grids with country layers, calculate zonal statistics, and save the results to a CSV file.
 
-### Script 1: Dissolve Shapefiles (ShpDissolve)
+## Script Description
+
+### processingTool Class
+
+A class to handle specific GIS operations.
+
+#### Attributes
+
+- `project`: The active QGIS project instance.
+- `country_layer`: The vector layer representing the country.
+- `raster_layer`: The raster layer to be processed.
+- `grid`: The grid layer created for analysis.
+- `gridIntersect`: The intersection of the grid and country layers.
+- `zonal_stats_results`: A list to store paths to the CSV files of zonal statistics results.
+
+#### Methods
+
+- `__init__(self)`: Initializes the processingTool class with the specified country and raster layers.
+- `loadFile(self, layer_name)`: Loads a layer by its name from the QGIS project.
+- `reproject(self)`: Reprojects the raster layer to EPSG:4326 if it is not already in that CRS.
+- `createGrid(self)`: Creates a grid over the extent of the country layer.
+- `intersectGridToCountry(self)`: Intersects the created grid with the country layer.
+- `zoonalStatistic(self)`: Calculates zonal statistics for each band of the raster layer.
+- `saveCSV(self)`: Combines all zonal statistics results into a single CSV file.
+
+## Example
+
+```python
+# Test running
+processingTool = processingTool()
+processingTool.reproject()
+processingTool.createGrid()
+processingTool.intersectGridToCountry()
+processingTool.zoonalStatistic()
+processingTool.saveCSV()
+
+## Test scripts
+### Script Test_1: Dissolve Shapefiles (ShpDissolve)
 
 #### Description
 This script iterates through shapefiles in a specified group within a QGIS project, dissolves each shapefile, and saves the output to a specified directory. The dissolved shapefiles are then added to a new group within the QGIS project.
@@ -104,7 +141,7 @@ dissolveLoop(group_name, group_layer)
 
 ---
 
-### Script 2: Clip Raster by Shapefiles (ClipCountry)
+### Script Test_2: Clip Raster by Shapefiles (ClipCountry)
 
 #### Description
 This script iterates through shapefiles in a specified group within a QGIS project, clips a raster layer using each shapefile, and saves the output to a specified directory.
