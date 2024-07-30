@@ -1,6 +1,4 @@
 ## PyQGIS for processing shp and raster Layers
-
-### Author: Gernot Nikolaus
 ### Date: 2024-07-29
 
 ---

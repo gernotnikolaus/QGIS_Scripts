@@ -8,7 +8,7 @@ from qgis.core import QgsProject, QgsCoordinateReferenceSystem, QgsVectorLayer
 import processing
 import pandas as pd
 
-# Folder path, a specific folder will be created here in the function for each layer
+# Folder path
 folder_path = f"C:/Users/nikolaus/Desktop/Script_testing/KfW_script/"
 
 class processingTool:
