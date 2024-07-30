@@ -7,8 +7,9 @@ from osgeo import gdal
 from qgis.core import QgsProject, QgsCoordinateReferenceSystem, QgsVectorLayer
 import processing
 import pandas as pd
+import csv
 
-# Folder path
+# Folder path, where the csv is saved later on
 folder_path = f"C:/Users/nikolaus/Desktop/Script_testing/KfW_script/"
 
 class processingTool:
@@ -27,6 +28,8 @@ class processingTool:
         The grid layer created for analysis.
     gridIntersect : QgsVectorLayer
         The intersection of the grid and country layers.
+    gridExtract : QgsVectorLayer
+        The extraction of the grid with country layer.
     zonal_stats_results : list
         A list to store paths to the CSV files of zonal statistics results.
     """
@@ -46,6 +49,7 @@ class processingTool:
         self.raster_layer = self.loadFile(self.raster_name)
         self.grid = None
         self.gridIntersect = None
+        self.gridExtract = None
         self.zonal_stats_results = []
         print(f"country_layer {self.country_layer}")
         print(f"raster_layer {self.raster_layer}")
@@ -96,22 +100,46 @@ class processingTool:
     # Create the grid
     def createGrid(self):
         """
-        Creates a grid over the extent of the country layer.
+        Creates a grid over the extent of the country layer and adds longitude and latitude attributes.
         """
         ext = self.country_layer.extent()
         
-        self.grid = processing.runAndLoadResults("native:creategrid", {
-            'TYPE':2,
+        # Create the grid
+        result = processing.run("native:creategrid", {
+            'TYPE': 2,
             'EXTENT': ext,
-            'HSPACING':0.232,
-            'VSPACING':0.232,
-            'HOVERLAY':0,
-            'VOVERLAY':0,
-            'CRS':QgsCoordinateReferenceSystem('EPSG:4326'),
-            'OUTPUT':'TEMPORARY_OUTPUT'
+            'HSPACING': 0.232,
+            'VSPACING': 0.232,
+            'HOVERLAY': 0,
+            'VOVERLAY': 0,
+            'CRS': QgsCoordinateReferenceSystem('EPSG:4326'),
+            'OUTPUT': 'TEMPORARY_OUTPUT'
         })
-            
-        print("Grid was created")
+        
+        # Extract the grid layer directly
+        self.grid = result['OUTPUT']
+        
+        # Add longitude and latitude fields
+        self.grid.startEditing()
+        self.grid.dataProvider().addAttributes([
+            QgsField('longitude', QVariant.Double),
+            QgsField('latitude', QVariant.Double)
+        ])
+        self.grid.updateFields()
+        # interates through and set the long and lat values
+        for feature in self.grid.getFeatures():
+            geom = feature.geometry()
+            centroid = geom.centroid().asPoint()
+            feature['longitude'] = centroid.x()
+            feature['latitude'] = centroid.y()
+            self.grid.updateFeature(feature)
+        
+        self.grid.commitChanges()
+        
+        # Add the grid layer to the project
+        QgsProject.instance().addMapLayer(self.grid)
+        
+        print("Grid with longitude and latitude attributes was created")
     
     # Create the intersection grid
     def intersectGridToCountry(self):
@@ -123,7 +151,7 @@ class processingTool:
             return
             
         self.gridIntersect = processing.runAndLoadResults("native:intersection", {
-            'INPUT': self.grid['OUTPUT'],
+            'INPUT': self.grid,
             'OVERLAY': self.country_layer,
             'INPUT_FIELDS':[],
             'OVERLAY_FIELDS':[],
@@ -133,17 +161,34 @@ class processingTool:
         })
             
         print("Intersection done")
+    
+    def extractGrid(self):
+        """
+        Extract the features of grid which intersect with the country layer.
+        """
+        if not self.grid:
+            print("Grid not created")
+            return
+            
+        self.gridExtract = processing.runAndLoadResults("native:extractbylocation", {
+            'INPUT':self.grid,
+            'PREDICATE':[0],
+            'INTERSECT':self.country_layer,
+            'OUTPUT':'TEMPORARY_OUTPUT'
+        })
+        
+        print("Extraction done")
 
     def zoonalStatistic(self):
         """
-        Calculates zonal statistics for each band of the raster layer.
+        Calculates zonal statistics for each band of the raster layer, ands add the name of the band.
         """
         raster_bands = gdal.Open(self.raster_layer['OUTPUT'])
         raster_bands = raster_bands.RasterCount
     
         for band in range(1, raster_bands + 1):
             self.gridValue = processing.run("native:zonalstatisticsfb", { #runAndLoadResults
-                'INPUT':self.gridIntersect['OUTPUT'],
+                'INPUT':self.gridExtract['OUTPUT'],
                 'INPUT_RASTER': self.raster_layer['OUTPUT'],
                 'RASTER_BAND':band,
                 'COLUMN_PREFIX':'_',
@@ -154,6 +199,18 @@ class processingTool:
             # Export the QgsVectorLayer to a CSV file
             output_csv_path = os.path.join(folder_path, f'zonal_statistic_band_{band}.csv')
             QgsVectorFileWriter.writeAsVectorFormat(self.gridValue['OUTPUT'], output_csv_path, 'utf-8', self.gridValue['OUTPUT'].crs(), 'CSV')
+            
+            # Add the band name to the CSV
+            with open(output_csv_path, 'r') as infile, open(output_csv_path + '_temp', 'w', newline='') as outfile:
+                reader = csv.reader(infile)
+                writer = csv.writer(outfile)
+                headers = next(reader)
+                writer.writerow(headers + ['Band_Name'])
+                for row in reader:
+                    writer.writerow(row + [f'Band_{band}'])
+            
+            os.replace(output_csv_path + '_temp', output_csv_path)
+            
             self.zonal_stats_results.append(output_csv_path)
             print(f"Zoonal statistic was successful for band {band}")
 
@@ -163,14 +220,21 @@ class processingTool:
         """
         # Combine all the zonal statistics results into a single DataFrame
         combined_df = pd.concat([pd.read_csv(output) for output in self.zonal_stats_results])
+        # Filter fields
+        fields_to_keep = ['Band_Name', 'latitude', 'longitude', '_count' , '_sum' , '_mean']
+        filtered_df = combined_df[fields_to_keep]
+        # Save the filtered DataFrame to CSV
         combined_csv_path = os.path.join(folder_path, 'combined_zonal_statistics.csv')
-        combined_df.to_csv(combined_csv_path, index=False)
+        filtered_df.to_csv(combined_csv_path, index=False)
+        
         print(f"CSV was saved at {combined_csv_path}")
+    
         
 # Test running
 processingTool = processingTool()
 processingTool.reproject()
 processingTool.createGrid()
-processingTool.intersectGridToCountry()
+processingTool.extractGrid()
+#processingTool.intersectGridToCountry()
 processingTool.zoonalStatistic()
 processingTool.saveCSV()
