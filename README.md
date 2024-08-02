@@ -2,7 +2,7 @@ Sure! Here's the GitHub documentation for the scripts you provided:
 
 ---
 
-# Project Title
+# geoprocessing scripts
 
 This project contains scripts for loading raster layers, creating grids, and performing zonal statistics in QGIS. The results are saved as CSV files.
 
